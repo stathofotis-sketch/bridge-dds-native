@@ -14,12 +14,14 @@ PLAYERS = [
     ("W", Player.west),
 ]
 
+# Use Denom.find(...) instead of enum attribute names.
+# This is more robust across endplay builds where the public enum aliases can differ.
 DENOMS = [
-    ("NT", Denom.notrumps),
-    ("S", Denom.spades),
-    ("H", Denom.hearts),
-    ("D", Denom.diamonds),
-    ("C", Denom.clubs),
+    ("NT", Denom.find("NT")),
+    ("S", Denom.find("S")),
+    ("H", Denom.find("H")),
+    ("D", Denom.find("D")),
+    ("C", Denom.find("C")),
 ]
 
 
