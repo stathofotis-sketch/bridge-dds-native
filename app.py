@@ -73,7 +73,7 @@ def validate_full_deal(dealstr: str):
     return seat_hands
 
 
-def optimum_result_table(table):
+def direct_dd_table(table):
     rows = []
     for declarer_label, player in PLAYERS:
         for denom_label, denom in DENOMS:
@@ -95,7 +95,10 @@ def health():
             "service": "bridge-dds-native",
             "engine": "Bo Haglund DDS via endplay",
             "endpoint": "POST /dd",
-            "qa": "Direct DD table calculation; no DoubleDummyTricks decoding.",
+            "qa": (
+                "Direct DDS table calculation only. "
+                "Final DD validation requires OptimumResultTable."
+            ),
         }
     )
 
@@ -119,7 +122,7 @@ def solve_dd():
 
         deal = Deal(dealstr)
         table = calc_dd_table(deal)
-        rows = optimum_result_table(table)
+        rows = direct_dd_table(table)
 
         return jsonify(
             {
@@ -135,18 +138,22 @@ def solve_dd():
                     "interface": "endplay.calc_dd_table",
                     "source_type": "direct_dd_table",
                 },
-                "optimum_result_table": {
+                "direct_dd_table": {
                     "headers": ["Declarer", "Denomination", "Result"],
                     "rows": rows,
                     "row_count": len(rows),
                 },
                 "dd_qa": {
-                    "status": "COMPUTED / REQUIRES CALIBRATION",
-                    "authoritative_candidate": "optimum_result_table",
+                    "status": "OPEN / NOT VALIDATED",
+                    "authoritative_field_required": "OptimumResultTable",
+                    "authoritative_field_present": False,
+                    "final_dd_claim_allowed": False,
                     "note": (
-                        "Results come directly from DDS CalcDDtable via endplay, "
-                        "not from decoding DoubleDummyTricks. Activate as canonical "
-                        "only after cross-checking against trusted OptimumResultTable evidence."
+                        "Results come directly from DDS CalcDDtable via endplay. "
+                        "They are computational evidence and are NOT the PBN "
+                        "OptimumResultTable field. Final DD tricks/results require "
+                        "verification of the exact declarer + denomination against "
+                        "trusted OptimumResultTable evidence."
                     ),
                 },
             }
