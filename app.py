@@ -95,10 +95,8 @@ def health():
             "service": "bridge-dds-native",
             "engine": "Bo Haglund DDS via endplay",
             "endpoint": "POST /dd",
-            "qa": (
-                "Direct DDS table calculation only. "
-                "Final DD validation requires OptimumResultTable."
-            ),
+            "endplay_version": "0.5.12",
+            "response_type": "direct 20-cell double-dummy table",
         }
     )
 
@@ -137,24 +135,17 @@ def solve_dd():
                     "engine": "Bo Haglund DDS",
                     "interface": "endplay.calc_dd_table",
                     "source_type": "direct_dd_table",
+                    "endplay_version": "0.5.12",
+                },
+                "provenance": {
+                    "service": "bridge-dds-native-1",
+                    "repository": "stathofotis-sketch/bridge-dds-native",
+                    "branch": "main",
                 },
                 "direct_dd_table": {
                     "headers": ["Declarer", "Denomination", "Result"],
                     "rows": rows,
                     "row_count": len(rows),
-                },
-                "dd_qa": {
-                    "status": "OPEN / NOT VALIDATED",
-                    "authoritative_field_required": "OptimumResultTable",
-                    "authoritative_field_present": False,
-                    "final_dd_claim_allowed": False,
-                    "note": (
-                        "Results come directly from DDS CalcDDtable via endplay. "
-                        "They are computational evidence and are NOT the PBN "
-                        "OptimumResultTable field. Final DD tricks/results require "
-                        "verification of the exact declarer + denomination against "
-                        "trusted OptimumResultTable evidence."
-                    ),
                 },
             }
         )
