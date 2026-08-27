@@ -1,7 +1,9 @@
 from flask import Flask, jsonify, request
 from endplay.types import Deal, Player, Denom
 from endplay.dds import calc_dd_table
-
+from importlib.metadata import version as package_version
+from ctypes import byref
+from endplay import _dds
 app = Flask(__name__)
 
 SEATS_CLOCKWISE = ["N", "E", "S", "W"]
@@ -23,7 +25,42 @@ DENOMS = [
     ("D", Denom.find("D")),
     ("C", Denom.find("C")),
 ]
+def get_solver_provenance():
+    provenance = {
+        "engine": "Bo Haglund DDS",
+        "interface": "endplay.calc_dd_table",
+        "source_type": "direct_dd_table",
+        "endplay_version": package_version("endplay"),
+    }
 
+    try:
+        info = _dds.DDSInfo()
+        _dds._dll.GetDDSInfo(byref(info))
+
+        provenance.update(
+            {
+                "dds_version": info.versionString.decode(
+                    "utf-8", errors="replace"
+                ).rstrip("\x00"),
+                "dds_version_numeric": (
+                    f"{info.major}.{info.minor}.{info.patch}"
+                ),
+                "dds_system": info.systemString.decode(
+                    "utf-8", errors="replace"
+                ).rstrip("\x00"),
+                "dds_provenance_status": "PASS",
+            }
+        )
+    except Exception as exc:
+        provenance.update(
+            {
+                "dds_version": None,
+                "dds_provenance_status": "UNAVAILABLE",
+                "dds_provenance_error": str(exc),
+            }
+        )
+
+    return provenance
 
 def validate_full_deal(dealstr: str):
     if not isinstance(dealstr, str) or ":" not in dealstr:
@@ -95,6 +132,7 @@ def health():
             "service": "bridge-dds-native",
             "engine": "Bo Haglund DDS via endplay",
             "endpoint": "POST /dd",
+            "provenance": get_solver_provenance(),
             "qa": (
                 "Direct DDS table calculation only. "
                 "Final DD validation requires OptimumResultTable."
