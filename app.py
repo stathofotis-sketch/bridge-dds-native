@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask, jsonify, request
 from endplay.types import Deal, Player, Denom
 from endplay.dds import calc_dd_table
@@ -23,6 +25,17 @@ DENOMS = [
     ("D", Denom.find("D")),
     ("C", Denom.find("C")),
 ]
+
+
+def render_provenance():
+    return {
+        "service": os.environ.get("RENDER_SERVICE_NAME"),
+        "service_id": os.environ.get("RENDER_SERVICE_ID"),
+        "external_url": os.environ.get("RENDER_EXTERNAL_URL"),
+        "repository": os.environ.get("RENDER_GIT_REPO_SLUG"),
+        "branch": os.environ.get("RENDER_GIT_BRANCH"),
+        "commit": os.environ.get("RENDER_GIT_COMMIT"),
+    }
 
 
 def validate_full_deal(dealstr: str):
@@ -97,6 +110,7 @@ def health():
             "endpoint": "POST /dd",
             "endplay_version": "0.5.12",
             "response_type": "direct 20-cell double-dummy table",
+            "provenance": render_provenance(),
         }
     )
 
@@ -137,11 +151,7 @@ def solve_dd():
                     "source_type": "direct_dd_table",
                     "endplay_version": "0.5.12",
                 },
-                "provenance": {
-                    "service": "bridge-dds-native-1",
-                    "repository": "stathofotis-sketch/bridge-dds-native",
-                    "branch": "main",
-                },
+                "provenance": render_provenance(),
                 "direct_dd_table": {
                     "headers": ["Declarer", "Denomination", "Result"],
                     "rows": rows,
